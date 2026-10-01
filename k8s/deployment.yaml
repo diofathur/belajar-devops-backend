@@ -17,6 +17,10 @@ spec:
       labels:
         app: backend
     spec:
+      securityContext:
+        fsGroup: 65532
+        runAsUser: 65532
+        runAsNonRoot: true
       containers:
         - name: backend
           # Placeholder, diganti CI ke image ECR backend.

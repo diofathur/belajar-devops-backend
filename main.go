@@ -48,8 +48,11 @@ func load() {
 // save = tulis store ke file (dipanggil tiap ada perubahan)
 func save() {
 	b, _ := json.MarshalIndent(store, "", "  ")
-	_ = os.WriteFile(dataFile, b, 0644)
-} 
+	if err := os.WriteFile(dataFile, b, 0644); err != nil {
+		log.Printf("GAGAL simpan ke %s: %v", dataFile, err)   // ← nge-log error
+	}
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
