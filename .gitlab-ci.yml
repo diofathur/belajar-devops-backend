@@ -16,10 +16,10 @@ stages:
 
 variables:
   AWS_REGION: "us-east-1"
-  ECR_REGISTRY: "381492189413.dkr.ecr.us-east-1.amazonaws.com"
+  ECR_REGISTRY: "03035338518756.dkr.ecr.us-east-1.amazonaws.com"
   ECR_REPO: "belajar-backend"
-  IMAGE_TAG: "381492189413.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:$CI_COMMIT_SHORT_SHA"
-  IMAGE_LATEST: "381492189413.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:latest"
+  IMAGE_TAG: "035338518756.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:$CI_COMMIT_SHORT_SHA"
+  IMAGE_LATEST: "035338518756.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:latest"
 
 build:
   stage: build
@@ -46,7 +46,7 @@ deploy:
   before_script:
     - curl -sLO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
     - install -m 0755 kubectl /usr/local/bin/kubectl
-    - aws eks update-kubeconfig --name eks-cluster --region "$AWS_REGION"
+    - aws eks update-kubeconfig --name eks-cluster-2 --region "$AWS_REGION"
   script:
     - 'kubectl kustomize k8s | sed "s|image: backend:local|image: $IMAGE_TAG|g" | kubectl apply -f -'
     - kubectl -n belajar-devops rollout status deployment/backend --timeout=180s
