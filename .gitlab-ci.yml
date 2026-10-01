@@ -16,7 +16,7 @@ stages:
 
 variables:
   AWS_REGION: "us-east-1"
-  ECR_REGISTRY: "03035338518756.dkr.ecr.us-east-1.amazonaws.com"
+  ECR_REGISTRY: "035338518756.dkr.ecr.us-east-1.amazonaws.com"
   ECR_REPO: "belajar-backend"
   IMAGE_TAG: "035338518756.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:$CI_COMMIT_SHORT_SHA"
   IMAGE_LATEST: "035338518756.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:latest"
