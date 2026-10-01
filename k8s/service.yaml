@@ -1,0 +1,16 @@
+# Service backend = alamat internal stabil, diakses frontend lewat DNS cluster:
+#   backend.belajar-devops.svc.cluster.local:8080
+# ClusterIP = internal only, nggak di-expose ke internet.
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: belajar-devops
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

@@ -1,0 +1,6 @@
+# Go
+/backend
+*.exe
+# OS
+.DS_Store
+Thumbs.db

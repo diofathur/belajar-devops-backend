@@ -1,0 +1,56 @@
+# =============================================================================
+# GitLab CI/CD - Backend Golang (repo terpisah)
+# =============================================================================
+# push -> build image Go -> push ke ECR -> deploy ke EKS (namespace belajar-devops)
+#
+# Variabel di GitLab (Settings > CI/CD > Variables, Masked):
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+#
+# Namespace belajar-devops HARUS udah ada (dibuat oleh repo frontend) sebelum
+# deploy backend. Kalau belum, deploy backend bakal gagal (namespace not found).
+# =============================================================================
+
+stages:
+  - build
+  - deploy
+
+variables:
+  AWS_REGION: "us-east-1"
+  ECR_REGISTRY: "381492189413.dkr.ecr.us-east-1.amazonaws.com"
+  ECR_REPO: "belajar-backend"
+  IMAGE_TAG: "381492189413.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:$CI_COMMIT_SHORT_SHA"
+  IMAGE_LATEST: "381492189413.dkr.ecr.us-east-1.amazonaws.com/belajar-backend:latest"
+
+build:
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - apk add --no-cache aws-cli
+    - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+  script:
+    - docker build -t "$IMAGE_TAG" -t "$IMAGE_LATEST" .
+    - docker push "$IMAGE_TAG"
+    - docker push "$IMAGE_LATEST"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+deploy:
+  stage: deploy
+  image:
+    name: amazon/aws-cli:2.18.15
+    entrypoint: [""]
+  before_script:
+    - curl -sLO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
+    - install -m 0755 kubectl /usr/local/bin/kubectl
+    - aws eks update-kubeconfig --name eks-cluster --region "$AWS_REGION"
+  script:
+    - 'kubectl kustomize k8s | sed "s|image: backend:local|image: $IMAGE_TAG|g" | kubectl apply -f -'
+    - kubectl -n belajar-devops rollout status deployment/backend --timeout=180s
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  environment:
+    name: production
