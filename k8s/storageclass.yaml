@@ -1,0 +1,9 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-gp3
+provisioner: ebs.csi.aws.com      # CSI driver, bukan kubernetes.io/aws-ebs
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp3
+reclaimPolicy: Retain              # Retain = volume nggak kehapus walau PVC dihapus (aman buat data)

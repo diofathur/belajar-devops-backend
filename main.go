@@ -23,19 +23,51 @@ var (
 	store  = []Item{}
 	nextID = 1
 	mu     sync.Mutex
+	dataFile = os.Getenv("DATA_FILE") // ← TAMBAH ini. isinya "/data/items.json" dari configmap
 )
+// load = baca data dari file ke memori pas startup
+func load() {
+	if dataFile == "" {
+		dataFile = "items.json" // fallback kalau env kosong (buat test lokal)
+	}
+	b, err := os.ReadFile(dataFile)
+	if err != nil {
+		return // file belum ada = store kosong, nggak apa-apa
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	_ = json.Unmarshal(b, &store)
+	// set nextID biar nggak nabrak ID yang udah ada
+	for _, it := range store {
+		if it.ID >= nextID {
+			nextID = it.ID + 1
+		}
+	}
+}
 
+// save = tulis store ke file (dipanggil tiap ada perubahan)
+func save() {
+	b, _ := json.MarshalIndent(store, "", "  ")
+	_ = os.WriteFile(dataFile, b, 0644)
+} 
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	// Seed data awal biar nggak kosong pas pertama kali diakses
-	store = append(store,
-		Item{ID: nextID, Text: "Halo dari backend Golang", CreatedAt: time.Now()},
-	)
-	nextID++
+		// Baca data dari volume (kalau ada file-nya)
+	load()
+
+	// Seed cuma kalau store masih kosong (file belum pernah dibuat)
+	if len(store) == 0 {
+		store = append(store,
+			Item{ID: nextID, Text: "Halo dari backend Golang", CreatedAt: time.Now()},
+		)
+		nextID++
+		save() // simpan seed ke file
+	}
+
 
 	mux := http.NewServeMux()
 
@@ -60,6 +92,7 @@ func main() {
 			item := Item{ID: nextID, Text: body.Text, CreatedAt: time.Now()}
 			store = append(store, item)
 			nextID++
+			save() 
 			mu.Unlock()
 			writeJSON(w, http.StatusCreated, item)
 

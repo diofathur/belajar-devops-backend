@@ -8,7 +8,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -24,9 +24,12 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-          env:
-            - name: PORT
-              value: "8080"
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          volumeMounts:
+            - name: data
+              mountPath: /data 
           resources:
             requests:
               cpu: "25m"
@@ -46,3 +49,7 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: backend-data 

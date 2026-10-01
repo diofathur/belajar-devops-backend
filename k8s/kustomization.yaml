@@ -4,5 +4,8 @@ kind: Kustomization
 # Backend repo cuma manage deployment + service-nya sendiri.
 # Namespace & configmap dimiliki repo frontend (dibuat duluan).
 resources:
+  - configmap.yaml
   - deployment.yaml
   - service.yaml
+  - pvc.yaml
+  - storageclass.yaml
