@@ -1,4 +1,4 @@
-name: Deploy Backend to EKS
+name: Deploy Backends to EKS
 
 # Trigger: tiap push ke branch main
 on:
