@@ -3,11 +3,10 @@ FROM golang:1.22-alpine AS build
 WORKDIR /src
 
 COPY go.mod ./
-RUN go mod download
-
 COPY . .
-# CGO_ENABLED=0 -> binary statis. -ldflags "-s -w" -> binary lebih kecil.
+RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/backend .
+
 
 # ---- Stage 2: runtime minimal (distroless, ~2MB) ----
 FROM gcr.io/distroless/static-debian12:nonroot

@@ -31,9 +31,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: backend-config
-          volumeMounts:
-            - name: data
-              mountPath: /data
           resources:
             requests:
               cpu: "25m"
@@ -53,7 +50,9 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: backend-data
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-db-secret
+                  key: DB_PASSWORD

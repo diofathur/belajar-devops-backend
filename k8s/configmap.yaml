@@ -5,4 +5,8 @@ metadata:
   namespace: belajar-devops
 data:
   PORT: "8080"
-  DATA_FILE: "/data/items.json"
+  DB_HOST: "belajar-postgres.cc5migaw0e4u.us-east-1.rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_NAME: "belajardb"
+  DB_USER: "appuser"
+
