@@ -6,9 +6,9 @@ on:
     branches: [main]
 
 # WAJIB buat OIDC: kasih izin workflow minta token id-token
-permissions:
-  id-token: write      # buat OIDC (assume role AWS)
-  contents: read       # buat checkout kode
+# permissions:
+#   id-token: write      # buat OIDC (assume role AWS)
+#   contents: read       # buat checkout kode
 
 env:
   AWS_REGION: us-east-1
@@ -25,10 +25,11 @@ jobs:
         uses: actions/checkout@v4
 
       # 2. Login ke AWS pakai OIDC (INI inti bedanya - nggak ada access key!)
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::183945808571:role/github-actions-ci   # dari output stack 07
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
       # 3. Login ke ECR
