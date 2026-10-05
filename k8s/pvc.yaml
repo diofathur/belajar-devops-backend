@@ -5,7 +5,7 @@ metadata:
   namespace: belajar-devops
 spec:
   accessModes:
-    - ReadWriteOnce          # EBS cuma bisa 1 node
+    - ReadWriteOnce
   storageClassName: ebs-gp3
   resources:
     requests:

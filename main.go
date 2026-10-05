@@ -16,28 +16,25 @@ type Item struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-// store = penyimpanan IN-MEMORY (hilang kalau Pod restart).
-// Nanti di fase storage, ini diganti baca/tulis ke file di volume (PVC).
-// Pakai mutex biar aman dari race condition saat banyak request barengan.
 var (
-	store  = []Item{}
-	nextID = 1
-	mu     sync.Mutex
-	dataFile = os.Getenv("DATA_FILE") // ← TAMBAH ini. isinya "/data/items.json" dari configmap
+	store    = []Item{}
+	nextID   = 1
+	mu       sync.Mutex
+	dataFile = os.Getenv("DATA_FILE")
 )
+
 // load = baca data dari file ke memori pas startup
 func load() {
 	if dataFile == "" {
-		dataFile = "items.json" // fallback kalau env kosong (buat test lokal)
+		dataFile = "items.json"
 	}
 	b, err := os.ReadFile(dataFile)
 	if err != nil {
-		return // file belum ada = store kosong, nggak apa-apa
+		return
 	}
 	mu.Lock()
 	defer mu.Unlock()
 	_ = json.Unmarshal(b, &store)
-	// set nextID biar nggak nabrak ID yang udah ada
 	for _, it := range store {
 		if it.ID >= nextID {
 			nextID = it.ID + 1
@@ -48,9 +45,7 @@ func load() {
 // save = tulis store ke file (dipanggil tiap ada perubahan)
 func save() {
 	b, _ := json.MarshalIndent(store, "", "  ")
-	if err := os.WriteFile(dataFile, b, 0644); err != nil {
-		log.Printf("GAGAL simpan ke %s: %v", dataFile, err)   // ← nge-log error
-	}
+	_ = os.WriteFile(dataFile, b, 0644)
 }
 
 func main() {
@@ -59,7 +54,7 @@ func main() {
 		port = "8080"
 	}
 
-		// Baca data dari volume (kalau ada file-nya)
+	// Baca data dari volume (kalau ada file-nya)
 	load()
 
 	// Seed cuma kalau store masih kosong (file belum pernah dibuat)
@@ -68,9 +63,8 @@ func main() {
 			Item{ID: nextID, Text: "Halo dari backend Golang", CreatedAt: time.Now()},
 		)
 		nextID++
-		save() // simpan seed ke file
+		save()
 	}
-
 
 	mux := http.NewServeMux()
 
@@ -95,7 +89,7 @@ func main() {
 			item := Item{ID: nextID, Text: body.Text, CreatedAt: time.Now()}
 			store = append(store, item)
 			nextID++
-			save() 
+			save()
 			mu.Unlock()
 			writeJSON(w, http.StatusCreated, item)
 
@@ -109,7 +103,7 @@ func main() {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
-	// Info buat tau Pod mana yang nanganin request (lihat load balancing antar Pod)
+	// Info buat tau Pod mana yang nanganin request
 	mux.HandleFunc("/api/info", func(w http.ResponseWriter, r *http.Request) {
 		host, _ := os.Hostname()
 		writeJSON(w, http.StatusOK, map[string]string{
